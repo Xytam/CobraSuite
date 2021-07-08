@@ -1,0 +1,8 @@
+invoke
+invocations
+boto
+mako
+lxml
+requests
+six
+boto3
