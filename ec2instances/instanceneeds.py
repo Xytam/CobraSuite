@@ -13,6 +13,37 @@ def getInstanceNeeds(data_file):
     AZ = str(input("Enter desired AZ (us-east-1 default): ") or 'us-east-1')
     desiredMBpsIngress = int(input("Enter desired input in MegaBYTES per second(5 default)") or 5)
     desiredMBpsEgress = int(input("Enter desired output in MegaBYTES per second(defaults to previous answer eg 1:1 input/output)") or desiredMBpsIngress)
+    replicationFactor = int(input("Enter desired replication factor average (default 5)") or 5)
+
+    requiredThroughput = (desiredMBpsIngress*replicationFactor)+desiredMBpsEgress
+    with open(data_file, 'r') as f:
+        instanceData = json.load(f)
+        filtered = []
+    for i in range(0,len(instanceData)):
+        #doing calculation of mbps here but may move it
+        if(instanceData[i]['vCPU'] > 4 and instanceData[i]['memory'] > 32 and instanceData[i]['ebs_baseline_bandwidth'] > 0 and bool(instanceData[i]['pricing'])):
+            for num in range(replicationFactor,50):
+                #This should dynamically calculate on frontend from js eventually
+                if (float(instanceData[i]['ebs_baseline_throughput_mbps'])*num*.7 > requiredThroughput):
+                    instanceData[i].update({'optimalCount': num})
+                    instanceData[i].update({'optimalAnnualCost': (12000*num) + num*(float(instanceData[i]['pricing'][AZ]['linux']['ondemand'])*24*7*365)})
+                    instanceData[i].update({'bandwidthUtilizationPercent': 100*(requiredThroughput / (num*float(instanceData[i]['ebs_baseline_throughput_mbps'])))})
+                    filtered.append(instanceData[i])
+                    break
+
+    sorted_data = sorted(filtered,key=lambda k: k['optimalAnnualCost'],reverse=False)
+    for i in range(0,len(sorted_data)):
+        print("Name: ",sorted_data[i]['instance_type']," / Optimal Count: ",sorted_data[i]['optimalCount']," / Total Anual Cost: ",round(sorted_data[i]['optimalAnnualCost'],2), " / EBS Bandwidth Utilization %: " , round(sorted_data[i]['bandwidthUtilizationPercent'],2) )
+    print("Viable Instance Count: ",len(sorted_data))
+
+
+
+
+
+def getInstanceNeedsOrig(data_file):
+    AZ = str(input("Enter desired AZ (us-east-1 default): ") or 'us-east-1')
+    desiredMBpsIngress = int(input("Enter desired input in MegaBYTES per second(5 default)") or 5)
+    desiredMBpsEgress = int(input("Enter desired output in MegaBYTES per second(defaults to previous answer eg 1:1 input/output)") or desiredMBpsIngress)
     replicationFactor = int(input("Enter desired replication factor average (default 3)") or 3)
     instanceCount = int(input("Enter amount of brokers, this assumes you have enough partitions to evenly distribute load (default 5)") or 5)
     desiredRefeed = int(input("How much data are you re-feeding in MegaBYTES per second? (0 default)") or 0)
