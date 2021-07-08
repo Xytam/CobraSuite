@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/norealnames/Documents/Git/WorkStuff/ec2instances/env"
+VIRTUAL_ENV="/home/norealnames/Documents/Git/WorkStuff/CobraSuite/ec2instances/env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

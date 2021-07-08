@@ -13,7 +13,7 @@ def getInstanceNeeds(data_file):
     AZ = str(input("Enter desired AZ (us-east-1 default): ") or 'us-east-1')
     desiredMBpsIngress = int(input("Enter desired input in MegaBYTES per second(5 default)") or 5)
     desiredMBpsEgress = int(input("Enter desired output in MegaBYTES per second(defaults to previous answer eg 1:1 input/output)") or desiredMBpsIngress)
-    replicationFactor = int(input("Enter desired replication factor average (default 3)") or 3)
+    replicatdsadsad asfarevionFactor = int(input("Enter desired replication factor average (default 3)") or 3)
     instanceCount = int(input("Enter amount of brokers, this assumes you have enough partitions to evenly distribute load (default 5)") or 5)
 
 

@@ -1,4 +1,4 @@
-#!/home/norealnames/testproject/ec2instances.info/env/bin/python3
+#!/home/norealnames/Documents/Git/WorkStuff/CobraSuite/ec2instances/env/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
