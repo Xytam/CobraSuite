@@ -3,7 +3,7 @@
 Instructions for EC2Instance.info rewrite (Note, I run this on anb AWS ec2 instance with their prebuild aws ami):
 1. Install AWS CLI, python3, and pip
 2. Run AWS Configure and set up an access key with view and read permissions in AWS
-3. cd into the ec2instances.info directory
+3. cd into the ec2instances directory
 4. Run the following
 python3 -m venv env
 source env/bin/activate
@@ -12,7 +12,6 @@ invoke build
 invoke serve
 open http://localhost:8080
 deactivate
-
 
 
 
