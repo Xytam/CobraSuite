@@ -8,6 +8,11 @@ Instructions for EC2Instance.info rewrite (Note, I run this on anb AWS ec2 insta
 python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt (I believe I had to make some edits to this but it may not work on all machines/builds)
+
+To play with sizing stuff:
+invoke mathTime
+
+To rebuild and serve webpage:
 invoke build
 invoke serve
 open http://localhost:8080
