@@ -28,13 +28,16 @@ def getInstanceNeeds(data_file):
             #doesn't currently take memory to memory operations in account but should
             #should also take into account % fullness of bandwidth and maybe throw error if disk can't keep up because memory to memory ops are fine
             instanceData[i].update({'mbPerDollar': (instanceData[i]['ebs_baseline_bandwidth']*60*60)/float(instanceData[i]['pricing'][AZ]['linux']['ondemand'])})
+
+            #This should dynamically calculate on frontend from js eventually
+            instanceData[i].update({'bandwidthUtilization': ( ((desiredMBpsIngress*replicationFactor/instanceCount) + (desiredMBpsEgress/instanceCount)) / float(instanceData[i]['ebs_baseline_throughput_mbps'])) })
             #should calculate total annual cost to run and give option to sort annual operating cost vs "best value"
             instanceData[i].update({'totalCostToRun': float(instanceData[i]['pricing'][AZ]['linux']['ondemand'])*24*7*365})
             filtered.append(instanceData[i])
 
     sorted_data = sorted(filtered,key=lambda k: k['totalCostToRun'],reverse=False)
     for i in range(0,len(sorted_data)):
-        print("Name: ",sorted_data[i]['instance_type']," / mbPerDollar: ",sorted_data[i]['mbPerDollar']," / Total Anual Cost: ",sorted_data[i]['totalCostToRun'] )
+        print("Name: ",sorted_data[i]['instance_type']," / mbPerDollar: ",sorted_data[i]['mbPerDollar']," / Total Anual Cost: ",sorted_data[i]['totalCostToRun'], " / EBS Bandwidth Utilization %: " , round(sorted_data[i]['bandwidthUtilization']*100,2) )
     print("Viable Instance Count: ",len(sorted_data))
 
 #            print("Instance Type: ",instance['instance_type']," Net Cost: ",instance['mbPerDollar'])
