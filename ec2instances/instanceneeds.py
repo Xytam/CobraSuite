@@ -15,6 +15,12 @@ def getInstanceNeeds(data_file):
     desiredMBpsEgress = int(input("Enter desired output in MegaBYTES per second(defaults to previous answer eg 1:1 input/output)") or desiredMBpsIngress)
     replicationFactor = int(input("Enter desired replication factor average (default 5)") or 5)
 
+    #To add
+    desiredRetention = int(input("Enter desired rention in days (7 default)") or 7)
+
+
+
+    retentionGBs = desiredRetention*24*60*60*desiredMBpsIngress
     requiredThroughput = (desiredMBpsIngress*replicationFactor)+desiredMBpsEgress
     with open(data_file, 'r') as f:
         instanceData = json.load(f)
@@ -26,6 +32,7 @@ def getInstanceNeeds(data_file):
                 #This should dynamically calculate on frontend from js eventually
                 if (float(instanceData[i]['ebs_baseline_throughput_mbps'])*num*.7 > requiredThroughput):
                     instanceData[i].update({'optimalCount': num})
+                    #Calculate disk(s) required here and add to optimal annual cost
                     instanceData[i].update({'optimalAnnualCost': (12000*num) + num*(float(instanceData[i]['pricing'][AZ]['linux']['ondemand'])*24*7*365)})
                     instanceData[i].update({'bandwidthUtilizationPercent': 100*(requiredThroughput / (num*float(instanceData[i]['ebs_baseline_throughput_mbps'])))})
                     filtered.append(instanceData[i])
