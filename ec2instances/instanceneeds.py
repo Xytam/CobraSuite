@@ -11,36 +11,48 @@ import traceback
 #ask AZs, throughput, replication, rhel or just linux, ondemand/[reserved(1,3yr)],
 def getInstanceNeeds(data_file):
     AZ = str(input("Enter desired AZ (us-east-1 default): ") or 'us-east-1')
-    desiredMBpsIngress = int(input("Enter desired input in MegaBYTES per second(5 default)") or 5)
+    desiredMBpsIngress = int(input("Enter desired input in MegaBYTES per second(440 default)") or 440)
     desiredMBpsEgress = int(input("Enter desired output in MegaBYTES per second(defaults to previous answer eg 1:1 input/output)") or desiredMBpsIngress)
     replicationFactor = int(input("Enter desired replication factor average (default 5)") or 5)
+
+    #need to add error checking
+    dataWindow = int(input("Enter approximate length in hours of data window within a day for when most of the flow occurs (default 12)") or 12)
+    dataWindowDays = int(input("Enter number of days when most of the flow occurs (default 5)") or 5)
 
     #To add
     desiredRetention = int(input("Enter desired rention in days (7 default)") or 7)
 
+    #networkUtilization = int(input("Calculate nework utilizationa at some point"))
 
 
     retentionGBs = desiredRetention*24*60*60*desiredMBpsIngress
-    requiredThroughput = (desiredMBpsIngress*replicationFactor)+desiredMBpsEgress
+
+    #math is right, multiply by 24/dataWindow to ensure bandwidth is available during usage time
+    ebsUtilizationTarget=.5
+    requiredThroughput = ((desiredMBpsIngress*replicationFactor)+desiredMBpsEgress)*(24/dataWindow)*(7/dataWindowDays)
     with open(data_file, 'r') as f:
         instanceData = json.load(f)
         filtered = []
     for i in range(0,len(instanceData)):
         #doing calculation of mbps here but may move it
-        if(instanceData[i]['vCPU'] > 4 and instanceData[i]['memory'] > 32 and instanceData[i]['ebs_baseline_bandwidth'] > 0 and bool(instanceData[i]['pricing'])):
+        if(instanceData[i]['vCPU'] > 4 and instanceData[i]['arch'][0] == "x86_64" and instanceData[i]['memory'] > 32 and \
+        instanceData[i]['ebs_baseline_bandwidth'] > 0 and instanceData[i]['network_performance'][0:1].isdigit() and bool(instanceData[i]['pricing'])):
             for num in range(replicationFactor,50):
                 #This should dynamically calculate on frontend from js eventually
-                if (float(instanceData[i]['ebs_baseline_throughput_mbps'])*num*.7 > requiredThroughput):
+                if (float(instanceData[i]['ebs_baseline_throughput_mbps'])*num*ebsUtilizationTarget > requiredThroughput):
                     instanceData[i].update({'optimalCount': num})
                     #Calculate disk(s) required here and add to optimal annual cost
-                    instanceData[i].update({'optimalAnnualCost': (12000*num) + num*(float(instanceData[i]['pricing'][AZ]['linux']['ondemand'])*24*7*365)})
+                    instanceData[i].update({'optimalAnnualCost': (6000*num) + num*(float(instanceData[i]['pricing'][AZ]['linux']['ondemand'])*24*7*365)})
                     instanceData[i].update({'bandwidthUtilizationPercent': 100*(requiredThroughput / (num*float(instanceData[i]['ebs_baseline_throughput_mbps'])))})
                     filtered.append(instanceData[i])
                     break
 
+
     sorted_data = sorted(filtered,key=lambda k: k['optimalAnnualCost'],reverse=False)
     for i in range(0,len(sorted_data)):
-        print("Name: ",sorted_data[i]['instance_type']," / Optimal Count: ",sorted_data[i]['optimalCount']," / Total Anual Cost: ",round(sorted_data[i]['optimalAnnualCost'],2), " / EBS Bandwidth Utilization %: " , round(sorted_data[i]['bandwidthUtilizationPercent'],2) )
+        print("Name: ",sorted_data[i]['instance_type']," / Optimal Count: ",sorted_data[i]['optimalCount']," / Total Anual Cost: ",round(sorted_data[i]['optimalAnnualCost'],2), \
+        " / EBS Bandwidth Utilization %: " , round(sorted_data[i]['bandwidthUtilizationPercent'],2), \
+        " / License Cost/%: " ,6000*sorted_data[i]['optimalCount'],"/", round((100*(6000*sorted_data[i]['optimalCount'])/round(sorted_data[i]['optimalAnnualCost'],2)),2) ,"%" )
     print("Viable Instance Count: ",len(sorted_data))
 
 
