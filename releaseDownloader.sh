@@ -5,7 +5,7 @@ curl https://docs.confluent.io/$version/release-notes/index.html -O -J -L
 curl https://docs.confluent.io/$version/release-notes/changelog.html -O -J -L
 echo "Webpages and further documentation are available at: https://docs.confluent.io/$version/release-notes/index.html and https://docs.confluent.io/$version/release-notes/changelog.html" >> Links.txt
 echo "Downloading targz of version"
-wget -r -np -nH -R index.html -N https://packages.confluent.io/archive/${version:0:3}/${version:0:5}
+wget -r -np -nH -R index.html -N https://packages.confluent.io/archive/${version:0:3}/${version:0:5}.tar.gz
 
 echo "Downloading rpms and debs"
 wget -r -np -nH -R index.html -N https://packages.confluent.io/rpm/${version:0:3}/
